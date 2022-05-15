@@ -1,0 +1,39 @@
+type User @entity {
+  id: Bytes!
+  projects: [Project!]! @derivedFrom(field: "creator")
+  receipts: [Receipt!]! @derivedFrom(field: "donator")
+}
+
+type Project @entity {
+  id: Bytes!
+  creator: User!
+  title: String!
+  requestedAmount: BigInt!
+  description: String!
+  image: String!
+  fundedAmount: BigInt!
+  claimedAmount: BigInt!
+  donators: [User!]!
+  createdAt: BigInt!
+  collection: Collection!
+  hidden: Boolean!
+}
+
+type Collection @entity {
+  id: Bytes!
+  project: Project! @derivedFrom(field: "collection")
+  receipts: [Receipt!]! @derivedFrom(field: "collection")
+}
+
+type Receipt @entity(immutable: true) {
+  id: Bytes!
+  name: String!
+  description: String!
+  image: String!
+  amount: String!
+  timestamp: BigInt!
+  project: Project!
+  tokenId: BigInt!
+  collection: Collection!
+  donator: User!
+}

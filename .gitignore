@@ -1,0 +1,13 @@
+node_modules
+.idea
+
+#Hardhat files
+cache
+artifacts
+
+.env
+.openzeppelin
+
+.DS_Store
+build
+generated

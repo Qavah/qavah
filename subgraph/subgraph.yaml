@@ -1,0 +1,35 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Contract
+    network: celo-alfajores
+    source:
+      address: "0x9A049793A8a9D94Ff2c0b7f370329F1dF654069D"
+      abi: Contract
+      startBlock: 11028807
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - ProjectCreated
+        - FundsDonated
+        - FundsClaimed
+        - ProjectVisibilitySet
+      abis:
+        - name: Contract
+          file: ./abis/Contract.json
+        - name: Qavah
+          file: ./abis/Qavah.json
+      eventHandlers:
+        - event: ProjectCreated(bytes32,indexed address)
+          handler: handleProjectCreated
+        - event: FundsDonated(indexed bytes32,address)
+          handler: handleFundsDonated
+        - event: FundsClaimed(indexed bytes32,address)
+          handler: handleFundsClaimed
+        - event: ProjectVisibilitySet(indexed bytes32,bool)
+          handler: handleProjectVisibilitySet
+      file: ./src/mapping.ts
