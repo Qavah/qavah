@@ -10,16 +10,19 @@ import "./Qavah.sol";
 contract Contract is Initializable {
     address public usdTokenAddress;
     string public siteUrl;
+    uint256 public root;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(address tokenAddress, string calldata url)
-        public
-        initializer
-    {
-        usdTokenAddress = tokenAddress;
-        siteUrl = url;
+    function initialize(
+        address _usdTokenAddress,
+        string calldata _siteUrl,
+        uint256 _root
+    ) public initializer {
+        usdTokenAddress = _usdTokenAddress;
+        siteUrl = _siteUrl;
+        root = _root;
     }
 
     struct Project {
@@ -116,7 +119,11 @@ contract Contract is Initializable {
         return count;
     }
 
-    function donateToProject(bytes32 id, uint256 amount) public {
+    function donateToProject(
+        bytes32 id,
+        uint256 amount,
+        string calldata message
+    ) public {
         Project storage project = projects[id];
         require(
             project.fundedAmount < project.requestedAmount,
@@ -134,12 +141,13 @@ contract Contract is Initializable {
             ),
             "Transfer failed."
         );
-        uint256 donationPercentage = (100 * amount) / project.requestedAmount;
+        uint256 donationPercentage = (root**2 * amount) /
+            project.requestedAmount;
         require(donationPercentage > 0, "Amount too low.");
-        uint256 fundedPercentage = (project.fundedAmount * 100) /
+        uint256 fundedPercentage = (project.fundedAmount * root**2) /
             project.requestedAmount;
         uint256 donationAmount = (donationPercentage *
-            project.requestedAmount) / 100;
+            project.requestedAmount) / root**2;
         project.fundedAmount += donationAmount;
         project.donators.push(msg.sender);
 
@@ -149,7 +157,8 @@ contract Contract is Initializable {
             project,
             donationPercentage,
             donationAmount,
-            fundedPercentage
+            fundedPercentage,
+            message
         );
 
         emit FundsDonated(id, msg.sender);
@@ -165,9 +174,8 @@ contract Contract is Initializable {
         }
     }
 
-    function getTiles() private pure returns (bytes[] memory) {
-        uint256 root = 10;
-        bytes[] memory tiles = new bytes[](root * root);
+    function getTiles() private view returns (bytes[] memory) {
+        bytes[] memory tiles = new bytes[](root**2);
         for (uint256 y = 0; y < root; y++) {
             for (uint256 x = 0; x < root; x++) {
                 tiles[y * root + x] = abi.encodePacked(
@@ -188,7 +196,7 @@ contract Contract is Initializable {
 
     function getTilesBytes(bytes32 projectId)
         private
-        pure
+        view
         returns (bytes memory)
     {
         bytes[] memory tiles = getTiles();
@@ -226,40 +234,40 @@ contract Contract is Initializable {
     ) private view returns (bytes memory) {
         return
             abi.encodePacked(
-                "<svg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'><defs><style>@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700');*{color:%23611f69}text,p{font-size:14px;font-family:'Space Grotesk',sans-serif;fill:currentColor}use{opacity: 0.2}use:nth-of-type(n+",
+                "<svg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'><defs><style>@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700');*{color:%23611f69}text,span{font-size:10px;font-family:'Space Grotesk',sans-serif;fill:currentColor}use{opacity:0.2}use:nth-of-type(n+",
                 Strings.toString(fundedPercentage + 1),
                 "):nth-of-type(-n+",
                 Strings.toString(fundedPercentage + donationPercentage),
                 "){opacity:1}</style><image id='a' href='",
                 projectImage,
-                "' x='40' y='74' width='320' height='180'/></defs><rect x='40' y='40' width='320' height='34' fill='%23fbcc5c'/><rect x='40' y='254' width='320' height='106' fill='%23fbcc5c'/><rect x='39' y='39' width='322' height='322' rx='0' fill='none' stroke='currentColor' stroke-width='2'/><text style='font-weight:bold' x='50%' y='60' dominant-baseline='middle' text-anchor='middle'>qavah %23",
+                "' x='40' y='64' width='320' height='180'/></defs><rect x='40' y='40' width='320' height='24' fill='%23fbcc5c'/><rect x='40' y='244' width='320' height='116' fill='%23fbcc5c'/><rect x='39' y='39' width='322' height='322' rx='0' fill='none' stroke='currentColor' stroke-width='2'/><text style='font-weight:bold' x='50%' y='53' dominant-baseline='middle' text-anchor='middle'>qavah %23",
                 Strings.toString(getQavahsCount()),
                 "</text>"
             );
     }
 
-    function getSvgEnd(string memory projectTitle, uint256 donationAmount)
-        private
-        pure
-        returns (bytes memory)
-    {
+    function getSvgEnd(
+        string memory projectTitle,
+        uint256 donationPercentage,
+        string calldata message
+    ) private pure returns (bytes memory) {
         return
             abi.encodePacked(
-                "<foreignObject x='60' y='270' width='280' height='54'><p xmlns='http://www.w3.org/1999/xhtml' style='margin:0;font-weight:bold'>",
+                "<foreignObject x='60' y='260' width='280' height='36'><span xmlns='http://www.w3.org/1999/xhtml' style='font-size:14px;font-weight:bold;text-overflow:ellipsis'>",
                 projectTitle,
-                "</p></foreignObject><text style='font-size:12px;font-weight: normal' x='340' y='340' text-anchor='end'>+",
-                Strings.toString(donationAmount / 1e18),
-                ".",
-                Strings.toString(((donationAmount * 100) / 1e18) % 100),
-                " cUSD</text></svg>"
+                "</span></foreignObject><foreignObject x='60' y='304' width='240' height='40' style='line-height: 0.8'><span xmlns='http://www.w3.org/1999/xhtml'>%E2%80%94 ",
+                message,
+                "</span></foreignObject><text x='330' y='344' style='font-weight:bold' text-anchor='end'>",
+                Strings.toString(donationPercentage),
+                "</text><path transform='translate(332,334)' d='M8.4 1.9c-.2.5-.9.5-1.2.2L5.9.8a.8.8 0 0 0-1.1 0l-.9.9A.8.8 0 0 0 4.3 3c.6.2.8 1 .4 1.4l-.3.3A.8.8 0 0 1 3 4.3a.8.8 0 0 0-1.3-.4l-.9.9c-.3.3-.3.8 0 1.1l1.3 1.3c.3.3.3 1-.2 1.2-.5.3-.6 1-.2 1.3l.6.6c.4.4 1 .3 1.2-.1.3-.6 1-.6 1.3-.3l1.3 1.3c.3.3.8.3 1.1 0l.9-.9A.8.8 0 0 0 7.7 9a.8.8 0 0 1-.4-1.4l.3-.3a.8.8 0 0 1 1.4.4c.2.6.9.8 1.3.4l.9-.9c.3-.3.3-.8 0-1.1L9.9 4.8a.8.8 0 0 1 .2-1.2c.5-.3.6-1 .2-1.3l-.6-.6a.8.8 0 0 0-1.2.1Z' fill='none' stroke='currentColor'/></svg>"
             );
     }
 
     function getSvg(
         Project memory project,
         uint256 donationPercentage,
-        uint256 donationAmount,
-        uint256 fundedPercentage
+        uint256 fundedPercentage,
+        string calldata message
     ) private view returns (bytes memory) {
         return
             abi.encodePacked(
@@ -269,14 +277,16 @@ contract Contract is Initializable {
                     fundedPercentage
                 ),
                 getTilesBytes(project.id),
-                getSvgEnd(project.title, donationAmount)
+                getSvgEnd(project.title, donationPercentage, message)
             );
     }
 
     function getDataURI(
         bytes memory svg,
         bytes32 projectId,
-        uint256 donationAmount
+        uint256 donationAmount,
+        string calldata message,
+        uint256 donationPercentage
     ) private view returns (bytes memory) {
         return
             abi.encodePacked(
@@ -290,12 +300,27 @@ contract Contract is Initializable {
                 '","image":"data:image/svg+xml;utf8,',
                 svg,
                 '","amount":',
-                Strings.toString(donationAmount / 1e18),
-                ".",
-                Strings.toString(((donationAmount * 100) / 1e18) % 100),
+                getAmountString(donationAmount),
+                ',"message":"',
+                message,
+                '","percent":',
+                Strings.toString(donationPercentage),
                 ',"timestamp":',
                 Strings.toString(block.timestamp),
                 "}"
+            );
+    }
+
+    function getAmountString(uint256 amount)
+        private
+        pure
+        returns (bytes memory)
+    {
+        return
+            abi.encodePacked(
+                Strings.toString(amount / 1e18),
+                ".",
+                Strings.toString(((amount * 100) / 1e18) % 100)
             );
     }
 
@@ -303,15 +328,22 @@ contract Contract is Initializable {
         Project memory project,
         uint256 donationPercentage,
         uint256 donationAmount,
-        uint256 fundedPercentage
+        uint256 fundedPercentage,
+        string calldata message
     ) private {
         bytes memory svg = getSvg(
             project,
             donationPercentage,
-            donationAmount,
-            fundedPercentage
+            fundedPercentage,
+            message
         );
-        bytes memory dataURI = getDataURI(svg, project.id, donationAmount);
+        bytes memory dataURI = getDataURI(
+            svg,
+            project.id,
+            donationAmount,
+            message,
+            donationPercentage
+        );
         project.qavah.safeMint(
             msg.sender,
             string(

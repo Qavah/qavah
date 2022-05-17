@@ -19,11 +19,11 @@ function Header () {
         <>
           <Link
             to={`user/${window.ethereum.selectedAddress}`}
-            className={(store.disabled || window.location.pathname.includes('/user/' + window.ethereum.selectedAddress)) ? 'disabled' : ''}
+            className={window.location.pathname.includes('/user/' + window.ethereum.selectedAddress) ? 'disabled' : ''}
           >My profile</Link>
           <Link
             to='new'
-            className={(store.disabled || window.location.pathname.includes('/new')) ? 'disabled' : ''}
+            className={window.location.pathname.includes('/new') ? 'disabled' : ''}
           >New campaign</Link>
         </>
       ) : (

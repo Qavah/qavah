@@ -4,20 +4,19 @@ schema:
 dataSources:
   - kind: ethereum
     name: Contract
-    network: celo-alfajores
+    network: mainnet
     source:
-      address: "0x9A049793A8a9D94Ff2c0b7f370329F1dF654069D"
       abi: Contract
-      startBlock: 11028807
+      address: "0x0B306BF915C4d645ff596e518fAf3F9669b97016"
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - ProjectCreated
-        - FundsDonated
-        - FundsClaimed
-        - ProjectVisibilitySet
+        - User
+        - Project
+        - Collection
+        - Receipt
       abis:
         - name: Contract
           file: ./abis/Contract.json

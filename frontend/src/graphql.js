@@ -1,7 +1,9 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client'
 
-export const client = new ApolloClient({
-  uri: 'https://api.thegraph.com/subgraphs/name/yip-theodore/qavah',
+export const createClient = chainId => new ApolloClient({
+  uri: chainId === '1337'
+    ? 'http://localhost:8000/subgraphs/name/yip-theodore/qavah'
+    : 'https://api.thegraph.com/subgraphs/name/yip-theodore/qavah',
   cache: new InMemoryCache(),
   defaultOptions: {
     query: {

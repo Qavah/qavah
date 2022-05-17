@@ -48,6 +48,8 @@ export function handleFundsDonated(event: FundsDonated): void {
   receipt.description = _receipt.mustGet('description').toString()
   receipt.image = _receipt.mustGet('image').toString()
   receipt.amount = _receipt.mustGet('amount').toF64().toString()
+  receipt.message = _receipt.mustGet('message').toString()
+  receipt.percent = _receipt.mustGet('percent').toBigInt().toI32()
   receipt.timestamp = _receipt.mustGet('timestamp').toBigInt()
   receipt.project = project.id
   receipt.tokenId = _tokenId

@@ -1,10 +1,11 @@
-const { expect } = require("chai");
+const { expect } = require("chai")
+const deployContract = require('../scripts/deploy_upgradeable')
 
 describe("Contract", function () {
 
   let cUSD, contract, qavah, addr1, addr2, p
 
-  beforeEach(async function () {
+  before(async function () {
     [ creator, addr1, addr2 ] = await ethers.getSigners()
     p = (amount) => ethers.utils.parseUnits(amount.toString(), 18)
 
@@ -12,10 +13,7 @@ describe("Contract", function () {
     cUSD = await CUSD.deploy(p(1000))
     await cUSD.deployed()
 
-    const Contract = await ethers.getContractFactory("Contract")
-    contract = await upgrades.deployProxy(Contract, [ cUSD.address, 'http://localhost:3000/1337/' ])
-    await contract.deployed()
-    console.log(contract.address)
+    contract = await deployContract(cUSD.address)
 
     const qavahArtifact = await artifacts.readArtifact('Qavah')
     qavah = (address) => new ethers.Contract(address, qavahArtifact.abi, creator)
@@ -35,13 +33,13 @@ describe("Contract", function () {
     // await addr1.sendTransaction({ to: '0xD5411f421e2ADA12E731B07E49813018F35DDbD7', value: ethers.utils.parseEther('1') })
     await cUSD.transfer(addr1.address, p(400))
     await cUSD.connect(addr1).approve(contract.address, p(400))
-    await expect(contract.connect(addr1).donateToProject(projects[0].id, p(0.10))).to.be.reverted
-    await contract.connect(addr1).donateToProject(projects[0].id, p(300.90))
+    await expect(contract.connect(addr1).donateToProject(projects[0].id, p(0.10), '')).to.be.reverted
+    await contract.connect(addr1).donateToProject(projects[0].id, p(300.90), '')
 
     await cUSD.transfer(addr2.address, p(200))
     await cUSD.connect(addr2).approve(contract.address, p(200))
-    await contract.connect(addr2).donateToProject(projects[0].id, p(100))
-    await expect(contract.connect(addr2).donateToProject(projects[0].id, p(50))).to.be.reverted
+    await contract.connect(addr2).donateToProject(projects[0].id, p(100), '')
+    await expect(contract.connect(addr2).donateToProject(projects[0].id, p(50), '')).to.be.reverted
 
     const project = await contract.getProject(projects[0].id)
     expect(project.fundedAmount).to.equal(p(400))

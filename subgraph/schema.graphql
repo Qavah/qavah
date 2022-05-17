@@ -31,6 +31,8 @@ type Receipt @entity(immutable: true) {
   description: String!
   image: String!
   amount: String!
+  message: String!
+  percent: Int!
   timestamp: BigInt!
   project: Project!
   tokenId: BigInt!

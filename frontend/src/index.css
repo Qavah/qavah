@@ -69,8 +69,8 @@ h1 {
   position: absolute;
   font-size: 10px;
   top: 32px;
-  left: 20px;
-  width: 150%;
+  right: 16px;
+  text-transform: uppercase;
 }
 header a {
   margin-left: 20px;

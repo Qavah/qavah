@@ -1,14 +1,16 @@
 const { ethers, upgrades, artifacts, network } = require('hardhat')
 const fs = require('fs').promises
 
-async function main () {
+async function main (usdTokenAddress) {
   const Contract = await ethers.getContractFactory('Contract')
   const contract = await upgrades.deployProxy(Contract, network.name === 'localhost'
-    ? ['0xc351628EB244ec633d5f21fBD6621e1a683B1181', 'http://localhost:3000/1337/']
-    : ['0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1', 'https://qavah.me/44787/'])
+    ? [usdTokenAddress, 'http://localhost:3000/1337/', 5]
+    : ['0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1', 'https://qavah.me/44787/', 10])
   await contract.deployed()
   console.log('Contract deployed to:', contract.address)
   await saveFrontendFiles(contract)
+  await saveSubgraphFiles(contract)
+  return contract
 }
 
 async function saveFrontendFiles (contract) {
@@ -44,4 +46,35 @@ async function saveFrontendFiles (contract) {
   )
 }
 
-main()
+async function saveSubgraphFiles (contract) {
+  const networks = await fs.readFile(`${__dirname}/../subgraph/networks.json`)
+  const name = network.name === 'localhost' ? 'mainnet' : `celo-${network.name}`
+  await fs.writeFile(
+    `${__dirname}/../subgraph/networks.json`,
+    JSON.stringify({
+      ...JSON.parse(networks),
+      [name]: {
+        'Contract': {
+          ...JSON.parse(networks)[name].Contract,
+          address: contract.address,
+        }
+      },
+    }, undefined, 2)
+  )
+  const contractArtifact = await artifacts.readArtifact('Contract')
+  await fs.writeFile(
+    `${__dirname}/../subgraph/abis/Contract.json`,
+    JSON.stringify(contractArtifact, null, 2)
+  )
+  const qavahArtifact = await artifacts.readArtifact('Qavah')
+  await fs.writeFile(
+    `${__dirname}/../subgraph/abis/Qavah.json`,
+    JSON.stringify(qavahArtifact, null, 2)
+  )
+}
+
+module.exports = main
+
+if (require.main === module) {
+  main()
+}
