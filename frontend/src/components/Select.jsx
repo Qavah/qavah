@@ -22,7 +22,7 @@ const Select = ({ contribution, setContribution, percentage, requested, totalPie
       disabled={contribution >= totalPieces - percentage}
     >+</button>
     <span>
-      ({contribution > 0 ? `${(contribution * requested) / totalPieces} cUSD` : '0 cUSD'})
+      ({contribution > 0 ? `${((contribution * requested) / totalPieces).toFixed(2)} cUSD` : '0 cUSD'})
     </span>
   </>
 )

@@ -15,11 +15,6 @@ export const createClient = chainId => new ApolloClient({
       },
     },
   }),
-  defaultOptions: {
-    query: {
-      fetchPolicy: 'network-only',
-    },
-  },
 })
 
 export const ALL_PROJECTS = gql`
@@ -67,6 +62,7 @@ export const PROJECT_INFO = gql`
         id
       }
       createdAt
+      updatedAt
       collection {
         id
         receipts(orderBy: timestamp) {

@@ -4,23 +4,24 @@ import { useQuery } from '@apollo/client'
 import { useCelo } from '@celo/react-celo'
 import { BigNumber, ethers } from 'ethers'
 import { getContract, useContract } from '../utils'
-import { PROJECT_INFO, notificationVar } from '../graphql'
+import { PROJECT_INFO, ALL_PROJECTS, notificationVar } from '../graphql'
 import { ReactComponent as Puzzle } from '../assets/puzzle.svg'
 import Select from '../components/Select'
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '../utils/cropImage'
 import Report from '../components/Report'
-import { ipfs, onFileSelected } from '../utils'
+import { ipfs, onFileSelected, escapeHtml } from '../utils'
 
-function ProjectInfo ({ create }) {
+function ProjectInfo ({ create = false }) {
   const { chainId, projectId } = useParams()
   const navigate = useNavigate()
   const { connect } = useCelo()
   const { address, contract, balance, cUSD, fetchBalance } = useContract(chainId)
 
-  const { data: { project } = {}, refetch } = useQuery(PROJECT_INFO, {
+  const { data: { project } = {}, refetch, client } = useQuery(PROJECT_INFO, {
     variables: { projectId },
     onError: error => notificationVar(error.message),
+    skip: create,
   })
 
   const [ modal, setModal ] = useState('')
@@ -43,7 +44,7 @@ function ProjectInfo ({ create }) {
       if (project.fundedAmount !== project.requestedAmount) {
         setContribution(1)
       }
-      setAmount(ethers.utils.formatUnits(project.requestedAmount, 18))
+      setAmount(parseFloat(ethers.utils.formatUnits(project.requestedAmount, 18)).toFixed(2))
       setTitle(project.title)
       setDescription(project.description)
       const observer = new IntersectionObserver(
@@ -65,9 +66,9 @@ function ProjectInfo ({ create }) {
   
   const totalPieces = chainId === '1337' ? 25 : 100
   const percentage = project && BigNumber.from(project.fundedAmount).mul?.(totalPieces).div(project.requestedAmount).toNumber()
-  const toClaim = project && ethers.utils.formatUnits(BigNumber.from(project.fundedAmount).sub?.(project.claimedAmount) || 0, 18)
-  const funded = project && ethers.utils.formatUnits(project.fundedAmount, 18)
-  const requested = project && ethers.utils.formatUnits(project.requestedAmount, 18)
+  const toClaim = project && parseFloat(ethers.utils.formatUnits(BigNumber.from(project.fundedAmount).sub?.(project.claimedAmount) || 0, 18)).toFixed(2)
+  const funded = project && parseFloat(ethers.utils.formatUnits(project.fundedAmount, 18)).toFixed(2)
+  const requested = project && parseFloat(ethers.utils.formatUnits(project.requestedAmount, 18)).toFixed(2)
 
   const receiptsNb = project && project.collection.receipts.length
   const ranges = project && project.collection.receipts.reduce((acc, curr) => [
@@ -118,7 +119,7 @@ function ProjectInfo ({ create }) {
               crop={crop}
               onCropChange={setCrop}
               onCropComplete={(_, croppedAreaPixels) => setCroppedAreaPixels(croppedAreaPixels)}
-              objectFit={img.width <= img.height ? 'horizontal-cover' : 'vertical-cover'}
+              objectFit={img.width / img.height < 16 / 9 ? 'horizontal-cover' : 'vertical-cover'}
               zoom={zoom}
               onZoomChange={setZoom}
             />
@@ -139,7 +140,7 @@ function ProjectInfo ({ create }) {
                 type='number'
                 step='1'
                 min='10'
-                placeholder='10'
+                placeholder='100'
                 inputMode='numeric'
                 disabled={requested}
                 value={amount}
@@ -267,8 +268,17 @@ function ProjectInfo ({ create }) {
                       project.id
                     ).send({ from: address })
                     notificationVar('Funds successfully claimed!')
+                    const fetchClaimProjectFunds = async () => {
+                      const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })
+                      const cachedClaimedAmount = cached.project.claimedAmount
+                      const { data } = await refetch()
+                      if (cachedClaimedAmount === data.project.claimedAmount) {
+                        await new Promise(resolve => setTimeout(resolve, 2000))
+                        await fetchClaimProjectFunds()
+                      }
+                    }
+                    await fetchClaimProjectFunds()
                     fetchBalance(cUSD)
-                    setTimeout(refetch, 1000)
                   } catch (error) {
                     console.error(error)
                     notificationVar(error.message)
@@ -302,21 +312,42 @@ function ProjectInfo ({ create }) {
                     notificationVar('Please confirm…')
                     if (mode === 'CREATE') {
                       await contract.methods.createProject(
-                        title.trim(),
+                        escapeHtml(title.trim()),
                         description.trim(),
                         ethers.utils.parseUnits(amount, 18),
                         url,
                       ).send({ from: address })
                       notificationVar('Campaign successfully created!')
-                      setTimeout(() => navigate(`/${chainId}`), 1000)
+                      const fetchCreateProject = async () => {
+                        const { data: cached } = await client.query({ query: ALL_PROJECTS })
+                        const cachedMyProjects = cached.projects.filter(p => +p.creator.id === +address).length
+                        const { data } = await client.query({ query: ALL_PROJECTS, fetchPolicy: 'network-only' })
+                        if (cachedMyProjects === data.projects.filter(p => +p.creator.id === +address).length) {
+                          await new Promise(resolve => setTimeout(resolve, 2000))
+                          await fetchCreateProject()
+                        }
+                      }
+                      await fetchCreateProject()
+                      navigate(`/${chainId}`)
                     } else {
                       await contract.methods.editProject(
-                        title.trim(),
+                        project.id,
+                        escapeHtml(title.trim()),
                         description.trim(),
                         url,
                       ).send({ from: address })
                       notificationVar('Project successfully updated!')
-                      setTimeout(refetch, 1000)
+                      const fetchEditProject = async () => {
+                        const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })
+                        const cachedUpdatedAt = cached.project.updatedAt
+                        const { data } = await refetch()
+                        if (cachedUpdatedAt === data.project.updatedAt) {
+                          await new Promise(resolve => setTimeout(resolve, 2000))
+                          await fetchEditProject()
+                        }
+                      }
+                      await fetchEditProject()
+                      setMode('')
                     }
                   } catch (error) {
                     console.error(error)
@@ -370,7 +401,13 @@ function ProjectInfo ({ create }) {
         <div className='contribute'>
           <h5 className='h5'>Share this campaign</h5>
           <div className='share'>
-            <button className='button secondary'>Copy link</button>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/${chainId}/${project.id}`)
+                notificationVar('Copied to clipboard!')
+              }}
+              className='button secondary'
+            >Copy link</button>
             {+address !== +project.creator.id && (
               <Report userAddress={project?.creator.id} />
             )}
@@ -383,7 +420,7 @@ function ProjectInfo ({ create }) {
             <div className='Modal__top'>
               <h3 className='h5'>Are you sure?</h3>
               <span>
-                Current balance: <b>{balance !== null ? balance.toFixed(2) : '…'} cUSD</b>
+                Current balance: <b>{address ? balance : '…'} cUSD</b>
               </span>
             </div>
             <div className='interact'>
@@ -417,7 +454,7 @@ function ProjectInfo ({ create }) {
               <button className='button' onClick={() => setModal('')}>
                 Back
               </button>
-              {balance !== null ? (
+              {address ? (
                 <button
                   className='button grow primary'
                   disabled={
@@ -429,8 +466,7 @@ function ProjectInfo ({ create }) {
                   onClick={async () => {
                     try {
                       notificationVar('Waiting for approval…')
-                      const donation = ethers.utils.parseUnits((contribution * requested / totalPieces).toString(), 18)
-                      console.log(donation.toString())
+                      const donation = BigNumber.from(project.requestedAmount).mul(contribution).div(totalPieces)
                       await cUSD.methods.approve(
                         getContract(chainId),
                         donation.toString(),
@@ -439,12 +475,21 @@ function ProjectInfo ({ create }) {
                       await contract.methods.donateToProject(
                         project.id,
                         donation.toString(),
-                        message,
+                        escapeHtml(message),
                       ).send({ from: address })
                       notificationVar('Donation successfully sent!')
+                      const fetchDonateToProject = async () => {
+                        const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })
+                        const cachedMyDonations = cached.project.collection.receipts.filter(r => +r.donator.id === +address).length
+                        const { data } = await refetch()
+                        if (cachedMyDonations === data.project.collection.receipts.filter(r => +r.donator.id === +address).length) {
+                          await new Promise(resolve => setTimeout(resolve, 2000))
+                          await fetchDonateToProject()
+                        }
+                      }
+                      await fetchDonateToProject()
                       setModal('')
                       fetchBalance(cUSD)
-                      setTimeout(refetch, 1000)
                     } catch (error) {
                       console.error(error)
                       notificationVar(error.message)
@@ -456,7 +501,7 @@ function ProjectInfo ({ create }) {
                     contribution <= 0 ||
                     contribution > totalPieces - percentage
                   ? 'Give'
-                  : `Give ${contribution * requested / totalPieces} cUSD`}
+                  : `Give ${(contribution * requested / totalPieces).toFixed(2)} cUSD`}
                 </button>
               ) : (
                 <button className='button grow primary' onClick={connect}>

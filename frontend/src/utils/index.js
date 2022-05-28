@@ -36,7 +36,7 @@ export const useContract = (chainId) => {
 
   const fetchBalance = async (erc20) => {
     const balance = await erc20.methods.balanceOf(address).call()
-    setBalance(+ethers.utils.formatUnits(balance, 18))
+    setBalance(parseFloat(ethers.utils.formatUnits(balance, 18)).toFixed(2))
   }
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export const useContract = (chainId) => {
   return { address, contract, balance, cUSD, fetchBalance }
 }
 
-export function onFileSelected (event, setImg) {
+export async function onFileSelected (event, setImg) {
   var selectedFile = event.target.files[0]
   var reader = new FileReader()
   if (!selectedFile) return
@@ -70,6 +70,7 @@ export function onFileSelected (event, setImg) {
   const img = document.createElement('img')
   img.className = 'img'
   img.width = 640
+  img.height = 360
   img.title = selectedFile.name
   document.body.appendChild(img)
 
@@ -104,11 +105,15 @@ export function onFileSelected (event, setImg) {
       setImg({
         dataUrl: canvas1.toDataURL(),
         blob: await new Promise(resolve => canvas1.toBlob(resolve)),
-        width: canvas.width,
-        height: canvas.height,
+        width: canvas1.width,
+        height: canvas1.height,
       })
     }
     img.src = event.target.result
   }
   reader.readAsDataURL(selectedFile)
+}
+
+export const escapeHtml = (unsafe) => {
+  return unsafe.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;').replaceAll('#', '%23')
 }

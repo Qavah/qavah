@@ -15,7 +15,7 @@ const Project = ({ project }) => {
         <div className='bottom'>
           <div>
             <div className='progress'><div style={{ width: percentage + '%' }} /></div>
-            <span className='amounts'>{percentage}% funded of <b>{+ethers.utils.formatUnits(project.requestedAmount, 18)} cUSD</b></span>
+            <span className='amounts'>{percentage}% funded of <b>{parseFloat(ethers.utils.formatUnits(project.requestedAmount, 18)).toFixed(2)} cUSD</b></span>
           </div>
         </div>
       </div>

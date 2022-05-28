@@ -14,8 +14,9 @@ function App () {
     <CeloProvider
       dapp={{
         name: 'Qavah',
-        description: 'Spark hope.',
+        description: 'Decentralized and free of charge crowdfunding platform',
         url: 'https://qavah.me',
+        icon: 'https://qavah.me/favicon.png',
       }}
       network={{
         ...getNetwork(chainId),

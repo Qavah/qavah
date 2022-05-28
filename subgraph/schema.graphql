@@ -18,6 +18,7 @@ type Project @entity {
   createdAt: BigInt!
   collection: Collection!
   reports: Int!
+  updatedAt: BigInt!
 }
 
 type Collection @entity {

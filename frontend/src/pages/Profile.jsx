@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
-import { BigNumber } from 'ethers'
 import { PROFILE, notificationVar } from '../graphql'
 import { useContract } from '../utils'
 import Project from '../components/Project'
@@ -46,7 +45,7 @@ function Profile () {
         ) : (
           <span>
             Current balance:<br />
-            <b>{balance?.toFixed(2)} cUSD</b>
+            <b>{balance} cUSD</b>
           </span>
         )}
       </div>
@@ -78,9 +77,9 @@ function Profile () {
         </h2>
         <div className='projects'>
           {receipts.map(p => {
-            // const link = '/' + p.description?.split('/').slice(3).join('/')
+            const link = '/' + p.description?.split('/').slice(3).join('/')
             return (
-              <Link to={p.description} className={`a Project plain ${+address === +p.creator && 'mine'}`} key={p.id}>
+              <Link to={link} className={`a Project plain ${+address === +p.creator && 'mine'}`} key={p.id}>
                 {!window.ReactNativeWebView
                   ? <object data={p.image} type='image/svg+xml' className='object' aria-label={p.title} />
                   : <img src={p.image.replace(p.project.image, dataImgs[p.project.id])} className='img image' alt={p.title} />}

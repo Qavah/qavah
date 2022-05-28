@@ -6,7 +6,7 @@
 }
 
 .ReactModal__Overlay {
-  z-index: 2;
+  z-index: 3;
 }
 
 body {
@@ -98,7 +98,7 @@ body, .button, .input, .textarea {
   position: sticky;
   top: 0;
   background: #fbcc5c;
-  z-index: 2;
+  z-index: 3;
   height: 70px;
   padding: 20px;
 }
@@ -323,7 +323,7 @@ input {
       position: relative;
       .input[name="requested"] {
         margin: 0;
-        max-width: 100px;
+        max-width: 120px;
         font-weight: bold;
         padding: 5px 50px 5px 10px;
         &:disabled {
@@ -334,7 +334,7 @@ input {
       &::after {
         content: 'cUSD';
         position: absolute;
-        left: 50px;
+        left: 70px;
       }
     }
   }
@@ -541,7 +541,7 @@ input {
   }
   .admin {
     margin-top: 20px;
-    margin-bottom: 20px;
+    padding-bottom: 20px;
     display: flex;
     > * {
       flex: 1 1 0;
@@ -613,7 +613,7 @@ input {
   display: flex;
   align-items: center;
   word-break: break-word;
-  z-index: 3;
+  z-index: 4;
   span {
     &:first-letter {
       text-transform: capitalize;
@@ -663,18 +663,9 @@ input {
 }
 
 .Profile {
-  position: fixed;
-  top: 70px;
-  left: 0;
-  right: 0;
-  margin: auto;
   background: #fbcc5c;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 70px);
-  overflow-x: hidden;
-  overflow-y: auto;
-  z-index: 1;
   padding: 0 20px 20px;
   .top {
     align-items: start;
@@ -692,7 +683,7 @@ input {
   }
   .h2 {
     position: sticky;
-    top: 0;
+    top: 70px;
     z-index: 2;
   }
 }
@@ -787,7 +778,7 @@ input {
   position: fixed;
   inset: 0;
   background: rgba(97, 31, 105, 0.15);
-  z-index: 2;
+  z-index: 3;
   width: 100%;
 }
 

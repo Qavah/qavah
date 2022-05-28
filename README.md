@@ -1,6 +1,6 @@
 # Qavah
 
-A transparent and feeless fundraising platform running on the carbon-negative [Celo](https://celo.org) blockchain
+Decentralized and free of charge crowdfunding platform running on [Celo](https://celo.org)
 
 ## Running the project locally
 

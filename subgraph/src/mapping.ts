@@ -29,6 +29,7 @@ export function handleProjectCreated(event: ProjectCreated): void {
   project.claimedAmount = _project.claimedAmount
   project.donators = _project.donators.map<Bytes>(addr => Bytes.fromHexString(addr.toHex()))
   project.createdAt = _project.createdAt
+  project.updatedAt = project.createdAt
   let collection = new Collection(_project.qavah)
   collection.save()
   project.collection = collection.id
@@ -79,6 +80,7 @@ export function handleProjectEdited(event: ProjectEdited): void {
   project.title = _project.title
   project.description = _project.description
   project.image = _project.image
+  project.updatedAt = event.block.timestamp
   project.save()
 }
 

@@ -4,10 +4,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: Contract
-    network: mainnet
+    network: celo-alfajores
     source:
       abi: Contract
-      address: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+      address: "0xa58d490ff46795BB48C079738CcAaf01db6dF387"
+      startBlock: 11678983
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
