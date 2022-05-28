@@ -9,11 +9,10 @@ describe("Contract", function () {
     [ creator, addr1, addr2 ] = await ethers.getSigners()
     p = (amount) => ethers.utils.parseUnits(amount.toString(), 18)
 
-    const CUSD = await ethers.getContractFactory('CUSD')
-    cUSD = await CUSD.deploy(p(1000))
-    await cUSD.deployed()
+    contract = await deployContract()
 
-    contract = await deployContract(cUSD.address)
+    const cUSDArtifact = await artifacts.readArtifact('CUSD')
+    cUSD = new ethers.Contract(contract.usdTokenAddress(), cUSDArtifact.abi, creator)
 
     const qavahArtifact = await artifacts.readArtifact('Qavah')
     qavah = (address) => new ethers.Contract(address, qavahArtifact.abi, creator)
@@ -34,7 +33,7 @@ describe("Contract", function () {
     await cUSD.transfer(addr1.address, p(400))
     await cUSD.connect(addr1).approve(contract.address, p(400))
     await expect(contract.connect(addr1).donateToProject(projects[0].id, p(0.10), '')).to.be.reverted
-    await contract.connect(addr1).donateToProject(projects[0].id, p(300.90), '')
+    await contract.connect(addr1).donateToProject(projects[0].id, p(304.90), 'Wishing you the best!')
 
     await cUSD.transfer(addr2.address, p(200))
     await cUSD.connect(addr2).approve(contract.address, p(200))
@@ -49,7 +48,7 @@ describe("Contract", function () {
     const tokenURI1 = await qavah(project.qavah).tokenURI(0)
     const token1 = JSON.parse(atob(tokenURI1.split(',')[1]))
     // console.log(token1)
-    expect(token1.amount).to.equal(300)
+    expect(token1.amount).to.equal(304)
 
     const owner2 = await qavah(project.qavah).ownerOf(1)
     expect(owner2).to.equal(addr2.address)
@@ -59,7 +58,7 @@ describe("Contract", function () {
     const token2 = JSON.parse(atob(tokenURI2.split(',')[1]))
     const image = token2.image // atob(token2.image.split(',')[1])
     // console.log(image)
-    expect(image).to.contain(`:nth-of-type(n+${76}):nth-of-type(-n+${100})`)
+    expect(image).to.contain(`:nth-of-type(n+${20}):nth-of-type(-n+${25})`) // expect(image).to.contain(`:nth-of-type(n+${76}):nth-of-type(-n+${100})`)
   })
 
 })

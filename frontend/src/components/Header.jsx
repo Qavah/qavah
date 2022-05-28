@@ -1,35 +1,38 @@
-import React, { useContext, useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { Context, useBalance, getNetwork } from '../utils'
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { useCelo } from '@celo/react-celo'
+import { useReactiveVar } from '@apollo/client'
+import { notificationVar } from '../graphql'
 
 function Header () {
-  const { chainId } = useParams()
-  const { store } = useContext(Context)
-  const getBalance = useBalance(chainId)
-  useEffect(() => {
-    getBalance()
-  }, [])
+  const { connect, address, network, destroy } = useCelo()
+  const notification = useReactiveVar(notificationVar)
   return (
-    <header>
-      <Link to='' className='logo plain'>
-        <h1>qavah</h1>
-        <span className="network">{getNetwork(chainId)}</span>
-      </Link>
-      {store.balance !== null ? (
-        <>
-          <Link
-            to={`user/${window.ethereum.selectedAddress}`}
-            className={window.location.pathname.includes('/user/' + window.ethereum.selectedAddress) ? 'disabled' : ''}
-          >My profile</Link>
-          <Link
-            to='new'
-            className={window.location.pathname.includes('/new') ? 'disabled' : ''}
-          >New campaign</Link>
-        </>
-      ) : (
-        <button onClick={() => getBalance(true)}>Connect wallet</button>
+    <>
+      <header className='header'>
+        <Link to='' className='a logo plain'>
+          <h1 className='h1'>qavah</h1>
+          <span className="network">{network.name}</span>
+        </Link>
+        {address ? (
+          <>
+          {window.location.pathname.includes('/user/' + address) ? (
+            <button className="a" onClick={destroy}>Log out</button>
+          ) : (
+            <Link to={`user/${address}`} className='a'>My account</Link>
+          )}
+          </>
+        ) : (
+          <button className='a' onClick={connect}>Connect wallet</button>
+        )}
+      </header>
+      {notification && (
+        <div className='Message'>
+          <span>{notification}</span>
+          <button className='a' onClick={() => notificationVar('')}>x</button>
+        </div>
       )}
-    </header>
+    </>
   )
 }
 

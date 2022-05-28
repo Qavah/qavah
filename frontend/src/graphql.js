@@ -1,10 +1,20 @@
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client'
+import { ApolloClient, InMemoryCache, gql, makeVar } from '@apollo/client'
+
+export const notificationVar = makeVar('')
 
 export const createClient = chainId => new ApolloClient({
   uri: chainId === '1337'
     ? 'http://localhost:8000/subgraphs/name/yip-theodore/qavah'
     : 'https://api.thegraph.com/subgraphs/name/yip-theodore/qavah',
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          notification: { read: () => notificationVar() },
+        },
+      },
+    },
+  }),
   defaultOptions: {
     query: {
       fetchPolicy: 'network-only',
@@ -17,7 +27,7 @@ export const ALL_PROJECTS = gql`
     projects(
       orderBy: createdAt
       orderDirection: desc
-      where: { hidden: false }
+      where: { reports_lt: 2 }
     ) {
       id
       creator {
@@ -59,24 +69,32 @@ export const PROJECT_INFO = gql`
       createdAt
       collection {
         id
-        receipts(orderBy: timestamp, orderDirection: desc) {
+        receipts(orderBy: timestamp) {
           id
           name
           amount
+          image
           timestamp
           tokenId
           donator {
             id
+            reports
           }
+          message
         }
       }
+      createdAt
     }
   }
 `
 
 export const PROFILE = gql`
   query($userAddress: ID!) {
-    projects(where: { creator: $userAddress }) {
+    projects(
+      where: {creator: $userAddress}
+      orderBy: createdAt
+      orderDirection: desc
+    ) {
       id
       title
       requestedAmount
@@ -84,7 +102,11 @@ export const PROFILE = gql`
       image
       fundedAmount
     }
-    receipts(where: { donator: $userAddress }) {
+    receipts(
+      where: {donator: $userAddress}
+      orderBy: timestamp
+      orderDirection: desc
+    ) {
       id
       description
       image

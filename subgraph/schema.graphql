@@ -2,6 +2,7 @@ type User @entity {
   id: Bytes!
   projects: [Project!]! @derivedFrom(field: "creator")
   receipts: [Receipt!]! @derivedFrom(field: "donator")
+  reports: Int!
 }
 
 type Project @entity {
@@ -16,7 +17,7 @@ type Project @entity {
   donators: [User!]!
   createdAt: BigInt!
   collection: Collection!
-  hidden: Boolean!
+  reports: Int!
 }
 
 type Collection @entity {

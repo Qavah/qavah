@@ -5,7 +5,8 @@ import {
   ProjectCreated,
   FundsDonated,
   FundsClaimed,
-  ProjectVisibilitySet,
+  ProjectEdited,
+  UserReported,
 } from "../generated/Contract/Contract"
 import { Qavah } from "../generated/Contract/Qavah"
 import { User, Project, Collection, Receipt } from "../generated/schema"
@@ -16,6 +17,7 @@ export function handleProjectCreated(event: ProjectCreated): void {
   let user = User.load(_project.creator)
   if (!user) {
     user = new User(_project.creator)
+    user.reports = 0
     user.save()
   }
   project.creator = user.id
@@ -30,7 +32,7 @@ export function handleProjectCreated(event: ProjectCreated): void {
   let collection = new Collection(_project.qavah)
   collection.save()
   project.collection = collection.id
-  project.hidden = _project.hidden
+  project.reports = user.reports
   project.save()
 }
 
@@ -57,6 +59,7 @@ export function handleFundsDonated(event: FundsDonated): void {
   let user = User.load(event.params.from)
   if (!user) {
     user = new User(event.params.from)
+    user.reports = 0
     user.save()
   }
   receipt.donator = user.id
@@ -70,8 +73,26 @@ export function handleFundsClaimed(event: FundsClaimed): void {
   project.save()
 }
 
-export function handleProjectVisibilitySet(event: ProjectVisibilitySet): void {
+export function handleProjectEdited(event: ProjectEdited): void {
   let project = Project.load(event.params.id) as Project
-  project.hidden = event.params.hidden
+  const _project = Contract.bind(event.address).getProject(event.params.id)
+  project.title = _project.title
+  project.description = _project.description
+  project.image = _project.image
   project.save()
+}
+
+export function handleUserReported(event: UserReported): void {
+  log.info('User {} reported by {} for: {}', [event.params.userAddress.toHexString(), event.params.by.toHexString(), event.params.reason])
+  let user = User.load(event.params.userAddress) as User
+  user.reports++
+  user.save()
+  const _projects = Contract.bind(event.address).getProjectsByUser(event.params.userAddress)
+  for (let i = 0; i < _projects.length; i++) {
+    if (_projects[i].creator == user.id) {
+      let project = Project.load(_projects[i].id) as Project
+      project.reports++
+      project.save()
+    }
+  }
 }

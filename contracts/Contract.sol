@@ -37,20 +37,47 @@ contract Contract is Initializable {
         address[] donators;
         uint256 createdAt;
         Qavah qavah;
-        bool hidden;
     }
     mapping(bytes32 => Project) projects;
     bytes32[] projectIds;
+    uint256 public qavahsCount;
 
     event ProjectCreated(bytes32 id, address indexed from);
     event FundsDonated(bytes32 indexed id, address from);
     event FundsClaimed(bytes32 indexed id, address from);
-    event ProjectVisibilitySet(bytes32 indexed id, bool hidden);
+    event ProjectEdited(bytes32 indexed id, address from);
+    event UserReported(address indexed userAddress, address by, string reason);
 
     struct User {
         bytes32[] projectIds;
+        address[] reportedBy;
     }
     mapping(address => User) users;
+
+    function getProjects() public view returns (Project[] memory) {
+        Project[] memory _projects = new Project[](projectIds.length);
+        for (uint256 i = 0; i < projectIds.length; i++) {
+            _projects[i] = projects[projectIds[i]];
+        }
+        return _projects;
+    }
+
+    function getProject(bytes32 id) public view returns (Project memory) {
+        return projects[id];
+    }
+
+    function getProjectsByUser(address userAddress)
+        public
+        view
+        returns (Project[] memory)
+    {
+        bytes32[] memory projectIdsByUser = users[userAddress].projectIds;
+        Project[] memory _projects = new Project[](projectIdsByUser.length);
+        for (uint256 i = 0; i < projectIdsByUser.length; i++) {
+            _projects[i] = projects[projectIdsByUser[i]];
+        }
+        return _projects;
+    }
 
     function createProject(
         string calldata title,
@@ -86,37 +113,24 @@ contract Contract is Initializable {
         emit ProjectCreated(id, msg.sender);
     }
 
-    function getProjects() public view returns (Project[] memory) {
-        Project[] memory _projects = new Project[](projectIds.length);
-        for (uint256 i = 0; i < projectIds.length; i++) {
-            _projects[i] = projects[projectIds[i]];
-        }
-        return _projects;
-    }
+    function editProject(
+        bytes32 id,
+        string calldata title,
+        string calldata description,
+        string calldata image
+    ) public {
+        Project storage project = projects[id];
+        require(
+            msg.sender == project.creator,
+            "Only project creator can edit the project."
+        );
+        require(bytes(title).length > 0, "Project title must not be empty.");
 
-    function getProject(bytes32 id) public view returns (Project memory) {
-        return projects[id];
-    }
+        project.title = title;
+        project.description = description;
+        project.image = image;
 
-    function getProjectsByUser(address userAddress)
-        public
-        view
-        returns (Project[] memory)
-    {
-        bytes32[] memory projectIdsByUser = users[userAddress].projectIds;
-        Project[] memory _projects = new Project[](projectIdsByUser.length);
-        for (uint256 i = 0; i < projectIdsByUser.length; i++) {
-            _projects[i] = projects[projectIdsByUser[i]];
-        }
-        return _projects;
-    }
-
-    function getQavahsCount() public view returns (uint256) {
-        uint256 count = 0;
-        for (uint256 i = 0; i < projectIds.length; i++) {
-            count += projects[projectIds[i]].donators.length;
-        }
-        return count;
+        emit ProjectEdited(id, msg.sender);
     }
 
     function donateToProject(
@@ -162,6 +176,37 @@ contract Contract is Initializable {
         );
 
         emit FundsDonated(id, msg.sender);
+    }
+
+    function claimProjectFunds(bytes32 id) public {
+        Project storage project = projects[id];
+        require(
+            msg.sender == project.creator,
+            "Only project creator can claim the funds."
+        );
+        uint256 transferAmount = project.fundedAmount - project.claimedAmount;
+        require(transferAmount > 0, "There is nothing to claim.");
+
+        require(
+            IERC20(usdTokenAddress).transfer(msg.sender, transferAmount),
+            "Transfer failed."
+        );
+        project.claimedAmount += transferAmount;
+
+        emit FundsClaimed(id, msg.sender);
+    }
+
+    function reportUser(address userAddress, string calldata reason) public {
+        User storage user = users[userAddress];
+        require(user.projectIds.length > 0, "User does not exist.");
+        require(userAddress != msg.sender, "You cannot report yourself.");
+        for (uint256 i = 0; i < user.reportedBy.length; i++) {
+            if (msg.sender == user.reportedBy[i]) {
+                revert("You have already reported this user.");
+            }
+        }
+        user.reportedBy.push(msg.sender);
+        emit UserReported(userAddress, msg.sender, reason);
     }
 
     function shuffleArray(bytes[] memory array, uint256 entropy) private pure {
@@ -241,7 +286,7 @@ contract Contract is Initializable {
                 "){opacity:1}</style><image id='a' href='",
                 projectImage,
                 "' x='40' y='64' width='320' height='180'/></defs><rect x='40' y='40' width='320' height='24' fill='%23fbcc5c'/><rect x='40' y='244' width='320' height='116' fill='%23fbcc5c'/><rect x='39' y='39' width='322' height='322' rx='0' fill='none' stroke='currentColor' stroke-width='2'/><text style='font-weight:bold' x='50%' y='53' dominant-baseline='middle' text-anchor='middle'>qavah %23",
-                Strings.toString(getQavahsCount()),
+                Strings.toString(qavahsCount),
                 "</text>"
             );
     }
@@ -259,7 +304,20 @@ contract Contract is Initializable {
                 message,
                 "</span></foreignObject><text x='330' y='344' style='font-weight:bold' text-anchor='end'>",
                 Strings.toString(donationPercentage),
-                "</text><path transform='translate(332,334)' d='M8.4 1.9c-.2.5-.9.5-1.2.2L5.9.8a.8.8 0 0 0-1.1 0l-.9.9A.8.8 0 0 0 4.3 3c.6.2.8 1 .4 1.4l-.3.3A.8.8 0 0 1 3 4.3a.8.8 0 0 0-1.3-.4l-.9.9c-.3.3-.3.8 0 1.1l1.3 1.3c.3.3.3 1-.2 1.2-.5.3-.6 1-.2 1.3l.6.6c.4.4 1 .3 1.2-.1.3-.6 1-.6 1.3-.3l1.3 1.3c.3.3.8.3 1.1 0l.9-.9A.8.8 0 0 0 7.7 9a.8.8 0 0 1-.4-1.4l.3-.3a.8.8 0 0 1 1.4.4c.2.6.9.8 1.3.4l.9-.9c.3-.3.3-.8 0-1.1L9.9 4.8a.8.8 0 0 1 .2-1.2c.5-.3.6-1 .2-1.3l-.6-.6a.8.8 0 0 0-1.2.1Z' fill='none' stroke='currentColor'/></svg>"
+                "</text><path transform='translate(332,334)' d='M11.3 7v-.8L9.2 4.5v-.3l1.3-.4.2-.8L9 1.3l-.8.2-.4 1.2-.3.1L5.8.7h-.9L3.5 2.2l.2.6 1.2.4.3.7-1.3 1.3-.7-.3-.4-1.2-.6-.2L.7 4.9v.9l2.1 1.7v.3l-1.3.4-.2.8L3 10.7l.8-.2.4-1.2.3-.1 1.7 2.1h.9l1.4-1.5-.2-.6-1.2-.4-.3-.7 1.3-1.3.7.3.4 1.2.6.2 1.5-1.4Z' fill='none' stroke='currentColor'/></svg>"
+            );
+    }
+
+    function getAmountString(uint256 amount)
+        private
+        pure
+        returns (bytes memory)
+    {
+        return
+            abi.encodePacked(
+                Strings.toString(amount / 1e18),
+                ".",
+                Strings.toString(((amount * 100) / 1e18) % 100)
             );
     }
 
@@ -291,7 +349,7 @@ contract Contract is Initializable {
         return
             abi.encodePacked(
                 '{"name":"Qavah #',
-                Strings.toString(getQavahsCount()),
+                Strings.toString(qavahsCount),
                 '","description":"',
                 abi.encodePacked(
                     siteUrl,
@@ -311,19 +369,6 @@ contract Contract is Initializable {
             );
     }
 
-    function getAmountString(uint256 amount)
-        private
-        pure
-        returns (bytes memory)
-    {
-        return
-            abi.encodePacked(
-                Strings.toString(amount / 1e18),
-                ".",
-                Strings.toString(((amount * 100) / 1e18) % 100)
-            );
-    }
-
     function mintQavah(
         Project memory project,
         uint256 donationPercentage,
@@ -331,6 +376,7 @@ contract Contract is Initializable {
         uint256 fundedPercentage,
         string calldata message
     ) private {
+        qavahsCount++;
         bytes memory svg = getSvg(
             project,
             donationPercentage,
@@ -353,37 +399,5 @@ contract Contract is Initializable {
                 )
             )
         );
-    }
-
-    function claimProjectFunds(bytes32 id) public {
-        Project storage project = projects[id];
-        require(
-            msg.sender == project.creator,
-            "Only project creator can claim the funds."
-        );
-        uint256 transferAmount = project.fundedAmount - project.claimedAmount;
-        require(transferAmount > 0, "There is nothing to claim.");
-
-        require(
-            IERC20(usdTokenAddress).transfer(msg.sender, transferAmount),
-            "Transfer failed."
-        );
-        project.claimedAmount += transferAmount;
-
-        emit FundsClaimed(id, msg.sender);
-    }
-
-    function toggleProjectVisibility(bytes32 id) public onlyAdmin {
-        Project storage project = projects[id];
-        project.hidden = !project.hidden;
-        emit ProjectVisibilitySet(id, project.hidden);
-    }
-
-    modifier onlyAdmin() {
-        require(
-            msg.sender == 0xB24D63186f3392e86D68e36dA6d24cf5D3D8885a,
-            "Caller is not admin."
-        );
-        _;
     }
 }

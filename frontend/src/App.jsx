@@ -1,36 +1,34 @@
-import React, { useState } from 'react'
-import { Outlet, useParams } from "react-router-dom"
+import React from 'react'
+import { Outlet, useParams } from 'react-router-dom'
+import { CeloProvider } from '@celo/react-celo'
 import { ApolloProvider } from '@apollo/client'
-import { Context } from './utils'
 import { createClient } from './graphql'
+import { getNetwork } from './utils'
 import Header from './components/Header'
-import './index.css'
+import '@celo/react-celo/lib/styles.css'
+import './index.scss'
 
-function App() {
+function App () {
   const { chainId } = useParams()
-  const [store, setStore] = useState({
-    balance: null,
-  })
-  const updateStore = update => setStore({ ...store, ...update })
-
   return (
-    <Context.Provider value={{ store, updateStore }}>
+    <CeloProvider
+      dapp={{
+        name: 'Qavah',
+        description: 'Spark hope.',
+        url: 'https://qavah.me',
+      }}
+      network={{
+        ...getNetwork(chainId),
+        chainId: +chainId,
+      }}
+    >
       <ApolloProvider client={createClient(chainId)}>
         <main>
           <Header />
-          {/* <div className='Outlet'> */}
-            <Outlet />
-            {/* <div className="overlay" />
-          </div> */}
-          {store.message && (
-            <div className='Message'>
-              <span>{store.message}</span>
-              <button onClick={() => updateStore({ message: '' })}>x</button>
-            </div>
-          )}
+          <Outlet />
         </main>
       </ApolloProvider>
-    </Context.Provider>
+    </CeloProvider>
   )
 }
 

@@ -1,11 +1,24 @@
 const { ethers, upgrades, artifacts, network } = require('hardhat')
 const fs = require('fs').promises
 
-async function main (usdTokenAddress) {
+const getConstructorParams = async () => {
+  if (['localhost', 'hardhat'].includes(network.name)) {
+    const CUSD = await ethers.getContractFactory('CUSD')
+    const cUSD = await CUSD.deploy(ethers.utils.parseUnits('1000', 18))
+    await cUSD.deployed()
+    return [ cUSD.address, 'http://localhost:3000/1337/', 5 ]
+  }
+  if (network.name === 'alfajores') {
+    return [ '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1', 'https://qavah.me/44787/', 10 ]
+  }
+  if (network.name === 'celo') {
+    return [ '0x765de816845861e75a25fca122bb6898b8b1282a', 'https://qavah.me/42220/', 10 ]
+  }
+}
+
+async function main () {
   const Contract = await ethers.getContractFactory('Contract')
-  const contract = await upgrades.deployProxy(Contract, network.name === 'localhost'
-    ? [usdTokenAddress, 'http://localhost:3000/1337/', 5]
-    : ['0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1', 'https://qavah.me/44787/', 10])
+  const contract = await upgrades.deployProxy(Contract, await getConstructorParams())
   await contract.deployed()
   console.log('Contract deployed to:', contract.address)
   await saveFrontendFiles(contract)
@@ -14,11 +27,9 @@ async function main (usdTokenAddress) {
 }
 
 async function saveFrontendFiles (contract) {
-  await fs.access(`${__dirname}/../frontend/src/contracts`)
-    .catch(() => fs.mkdir(`${__dirname}/../frontend/src/contracts`))
+  await fs.access(`${__dirname}/../frontend/src/contracts`).catch(() => fs.mkdir(`${__dirname}/../frontend/src/contracts`))
 
-  const contractAddresses = await fs.readFile(`${__dirname}/../frontend/src/contracts/contract-address.json`)
-    .catch(() => '{}')
+  const contractAddresses = await fs.readFile(`${__dirname}/../frontend/src/contracts/contract-address.json`).catch(() => '{}')
   await fs.writeFile(
     `${__dirname}/../frontend/src/contracts/contract-address.json`,
     JSON.stringify({
@@ -48,14 +59,14 @@ async function saveFrontendFiles (contract) {
 
 async function saveSubgraphFiles (contract) {
   const networks = await fs.readFile(`${__dirname}/../subgraph/networks.json`)
-  const name = network.name === 'localhost' ? 'mainnet' : `celo-${network.name}`
+  const name = ['localhost', 'hardhat'].includes(network.name) ? 'mainnet' : `celo-${network.name}`
   await fs.writeFile(
     `${__dirname}/../subgraph/networks.json`,
     JSON.stringify({
       ...JSON.parse(networks),
       [name]: {
         'Contract': {
-          ...JSON.parse(networks)[name].Contract,
+          ...JSON.parse(networks)[name]?.Contract,
           address: contract.address,
         }
       },

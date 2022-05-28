@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.6.2",
+    "@celo/contractkit": "^2.0.0",
+    "@celo/react-celo": "^4.0.0-beta.1",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
@@ -11,11 +13,16 @@
     "ditherjs": "^0.10.0",
     "ethers": "^5.6.1",
     "graphql": "^16.4.0",
-    "ipfs-http-client": "^56.0.2",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "ipfs-http-client": "^56.0.3",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-easy-crop": "^4.2.0",
     "react-router-dom": "^6.2.2",
-    "react-scripts": "^5.0.0"
+    "react-scripts": "^4.0.3",
+    "sass": "^1.52.1"
+  },
+  "resolutions": {
+    "react-error-overlay": "6.0.9"
   },
   "scripts": {
     "start": "react-scripts start",
