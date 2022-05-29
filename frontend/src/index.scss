@@ -118,7 +118,7 @@ h1 {
 .network {
   position: absolute;
   font-size: 10px;
-  top: 32px;
+  top: 30px;
   right: 16px;
   text-transform: uppercase;
   font-weight: normal;
@@ -342,7 +342,7 @@ input {
     aspect-ratio: 16 / 9;
     background: rgb(245, 195, 94);
     position: relative;
-    z-index: 2;
+    z-index: 3;
     @media (min-width: 600px) {
       position: fixed;
       top: 70px;
@@ -369,7 +369,7 @@ input {
   .h3 {
     margin: 0;
     font-size: 22px;
-    padding: calc(22px * 1.5 / 2) 0 calc(22px * 1.5 / 4);
+    padding: 10px 0 8px;
     line-height: 1.2;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -379,7 +379,7 @@ input {
   .h4 {
     font-size: 16px;
     font-weight: bold;
-    padding: calc(16px * 1.5 / 2) 0 calc(16px * 1.5 / 4);
+    padding: 8px 0 5px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -437,7 +437,7 @@ input {
     // top: 70px;
     top: 0px;
     background: #fbcc5c;
-    z-index: 2;
+    z-index: 3;
     display: block;
   }
   .timeline {
@@ -575,7 +575,7 @@ input {
     }
     .h3 {
       font-size: 28px;
-      padding: calc(28px * 1.5 / 2) 0 calc(28px * 1.5 / 4);
+      padding: 15px 0 10px;
     }
     .h3, .h4 {
       top: 70px;
@@ -793,4 +793,9 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 input[type="number"] {
     -moz-appearance: textfield;
+}
+
+.cropper {
+  position: relative;
+  aspect-ratio: 16 / 9;
 }

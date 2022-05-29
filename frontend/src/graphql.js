@@ -1,11 +1,10 @@
 import { ApolloClient, InMemoryCache, gql, makeVar } from '@apollo/client'
+import { getNetwork } from './utils'
 
 export const notificationVar = makeVar('')
 
 export const createClient = chainId => new ApolloClient({
-  uri: chainId === '1337'
-    ? 'http://localhost:8000/subgraphs/name/yip-theodore/qavah'
-    : 'https://api.thegraph.com/subgraphs/name/yip-theodore/qavah',
+  uri: getNetwork(chainId)?.subgraph,
   cache: new InMemoryCache({
     typePolicies: {
       Query: {

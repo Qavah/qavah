@@ -112,7 +112,7 @@ function ProjectInfo ({ create = false }) {
         )
       ) : (
         <aside className='container'>
-          <div style={{ position: 'relative', aspectRatio: '16 / 9', zIndex: 2 }}>
+          <div className='cropper'>
             <Cropper
               image={img.dataUrl || project?.image}
               aspect={16 / 9}
@@ -263,10 +263,10 @@ function ProjectInfo ({ create = false }) {
                 className='button claim primary'
                 onClick={async () => {
                   try {
-                    notificationVar('Please wait…')
+                    notificationVar('Please confirm on your wallet…')
                     await contract.methods.claimProjectFunds(
                       project.id
-                    ).send({ from: address })
+                    ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
                     notificationVar('Funds successfully claimed!')
                     const fetchClaimProjectFunds = async () => {
                       const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })
@@ -309,14 +309,15 @@ function ProjectInfo ({ create = false }) {
                       const { path } = await ipfs.add(await fetch(croppedImage).then(r => r.blob()))
                       url = `https://ipfs.infura.io/ipfs/${path}`
                     }
-                    notificationVar('Please confirm…')
+                    notificationVar('Please confirm on your wallet…')
                     if (mode === 'CREATE') {
+                      client.query({ query: ALL_PROJECTS })
                       await contract.methods.createProject(
                         escapeHtml(title.trim()),
                         description.trim(),
                         ethers.utils.parseUnits(amount, 18),
                         url,
-                      ).send({ from: address })
+                      ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
                       notificationVar('Campaign successfully created!')
                       const fetchCreateProject = async () => {
                         const { data: cached } = await client.query({ query: ALL_PROJECTS })
@@ -335,7 +336,7 @@ function ProjectInfo ({ create = false }) {
                         escapeHtml(title.trim()),
                         description.trim(),
                         url,
-                      ).send({ from: address })
+                      ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
                       notificationVar('Project successfully updated!')
                       const fetchEditProject = async () => {
                         const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })
@@ -366,7 +367,7 @@ function ProjectInfo ({ create = false }) {
             How can I help?
             <span>
               {totalPieces - percentage}{' '}
-              <Puzzle width={16} height={16} fill='rgba(97, 31, 105, 0.3)' color='rgba(97, 31, 105, 1)' strokeWidth={0.5} />
+              <Puzzle height={16} fill='rgba(97, 31, 105, 0.7)' strokeWidth={0} />
               left
             </span>
           </div>
@@ -404,7 +405,7 @@ function ProjectInfo ({ create = false }) {
             <button
               onClick={() => {
                 navigator.clipboard.writeText(`${window.location.origin}/${chainId}/${project.id}`)
-                notificationVar('Copied to clipboard!')
+                notificationVar('Link copied!')
               }}
               className='button secondary'
             >Copy link</button>
@@ -465,18 +466,18 @@ function ProjectInfo ({ create = false }) {
                   }
                   onClick={async () => {
                     try {
-                      notificationVar('Waiting for approval…')
+                      notificationVar('Please approve on your wallet… (1/2)')
                       const donation = BigNumber.from(project.requestedAmount).mul(contribution).div(totalPieces)
                       await cUSD.methods.approve(
                         getContract(chainId),
                         donation.toString(),
-                      ).send({ from: address })
-                      notificationVar('Please confirm…')
+                      ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
+                      notificationVar('Please confirm on your wallet… (2/2)')
                       await contract.methods.donateToProject(
                         project.id,
                         donation.toString(),
                         escapeHtml(message),
-                      ).send({ from: address })
+                      ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
                       notificationVar('Donation successfully sent!')
                       const fetchDonateToProject = async () => {
                         const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })

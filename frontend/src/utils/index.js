@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useCelo } from '@celo/react-celo'
 import { create as ipfsHttpClient } from 'ipfs-http-client'
 import { ethers } from 'ethers'
@@ -13,16 +13,19 @@ export const getNetwork = chainId => ({
   1337: {
     name: 'Localhost',
     rpcUrl: 'http://localhost:8545',
+    subgraph: 'http://localhost:8000/subgraphs/name/yip-theodore/qavah',
   },
   44787: {
     name: 'Alfajores',
     rpcUrl: 'https://alfajores-forno.celo-testnet.org',
     explorer: 'https://alfajores-blockscout.celo-testnet.org',
+    subgraph: 'https://api.thegraph.com/subgraphs/name/yip-theodore/qavah',
   },
   42220: {
     name: 'Celo',
     rpcUrl: 'https://forno.celo.org',
     explorer: 'https://explorer.celo.org',
+    subgraph: 'https://api.thegraph.com/subgraphs/name/yip-theodore/qavah-celo-mainnet',
   }
 })[chainId]
 
@@ -34,10 +37,10 @@ export const useContract = (chainId) => {
   const [ cUSD, setCUSD ] = useState(null)
   const [ balance, setBalance ] = useState(null)
 
-  const fetchBalance = async (erc20) => {
+  const fetchBalance = useCallback(async (erc20) => {
     const balance = await erc20.methods.balanceOf(address).call()
     setBalance(parseFloat(ethers.utils.formatUnits(balance, 18)).toFixed(2))
-  }
+  }, [ address ])
 
   useEffect(() => {
     if (address) {
@@ -56,7 +59,7 @@ export const useContract = (chainId) => {
         setCUSD(cUSD)
       })
     }
-  }, [ address ])
+  }, [ address, chainId, fetchBalance, kit.connection.web3.eth.Contract ])
 
 
   return { address, contract, balance, cUSD, fetchBalance }

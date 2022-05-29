@@ -13,7 +13,7 @@ root.render(
     <BrowserRouter>
       <Routes>
         <Route path='/'>
-          <Route index element={<Navigate to='/44787' replace />} />
+          <Route index element={<Navigate to='/42220' replace />} />
           <Route path=':chainId' element={<App />}>
             <Route index element={<Explorer />} />
             <Route path='new' element={<ProjectInfo create />} />

@@ -15,10 +15,15 @@ module.exports = {
   networks: {
     hardhat: { chainId: 1337 },
     localhost: { chainId: 1337 },
-    alfajores: {
+    'celo-alfajores': {
+      chainId: 44787,
       url: 'https://alfajores-forno.celo-testnet.org',
       ...process.env.PRIVATE_KEY && { accounts: [`0x${process.env.PRIVATE_KEY}`] },
-      chainId: 44787,
+    },
+    'celo': {
+      chainId: 42220,
+      url: 'https://forno.celo.org',
+      ...process.env.PRIVATE_KEY && { accounts: [`0x${process.env.PRIVATE_KEY}`] },
     },
   }
-};
+}

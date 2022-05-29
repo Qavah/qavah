@@ -11,7 +11,7 @@ cd qavah
 npm install
 ```
 
-Once installed, you can start a local Ethereum network by using [Hardhat](https://github.com/NomicFoundation/hardhat):
+Once installed, you can start a local Ethereum network using [Hardhat](https://github.com/NomicFoundation/hardhat):
 ```sh
 npx hardhat node
 ```
@@ -24,7 +24,7 @@ npx hardhat run scripts/deploy_upgradeable.js --network localhost
 npx hardhat test --network localhost
 ```
 
-You may also want to set up your own local [The Graph](https://github.com/graphprotocol/graph-node) node:
+You may also want to set up your own local [TheGraph](https://github.com/graphprotocol/graph-node) node:
 ```sh
 git clone https://github.com/graphprotocol/graph-node.git
 cd graph-node/docker
@@ -46,4 +46,4 @@ npm start
 ```
 
 ## For further information
-> Don't hesitate to drop an email at contact@qavah.me
+> Drop an email at contact@qavah.me

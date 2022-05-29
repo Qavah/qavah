@@ -4,7 +4,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ yip-theodore/qavah",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ yip-theodore/qavah-celo-mainnet",
     "create-local": "graph create --node http://localhost:8020/ yip-theodore/qavah",
     "remove-local": "graph remove --node http://localhost:8020/ yip-theodore/qavah",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 yip-theodore/qavah"

@@ -22,12 +22,12 @@ const Report = ({ userAddress }) => {
                 className='button grow primary'
                 onClick={async () => {
                   try {
-                    notificationVar('Please confirm…')
+                    notificationVar('Please confirm on your wallet…')
                     await contract.methods.reportUser(
                       userAddress,
                       ref.current.value,
-                    ).send({ from: address })
-                    notificationVar('User reported.')
+                    ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
+                    notificationVar('User successfully reported.')
                     setModal('')
                   } catch (error) {
                     console.error(error)

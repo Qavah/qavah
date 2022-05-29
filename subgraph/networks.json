@@ -9,5 +9,11 @@
       "address": "0xa58d490ff46795BB48C079738CcAaf01db6dF387",
       "startBlock": 11678983
     }
+  },
+  "celo": {
+    "Contract": {
+      "address": "0xa308ea284937d287DFE3268a0c0cF754664a07E5",
+      "startBlock": 13247318
+    }
   }
 }

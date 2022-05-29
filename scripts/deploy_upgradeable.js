@@ -8,7 +8,7 @@ const getConstructorParams = async () => {
     await cUSD.deployed()
     return [ cUSD.address, 'http://localhost:3000/1337/', 5 ]
   }
-  if (network.name === 'alfajores') {
+  if (network.name === 'celo-alfajores') {
     return [ '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1', 'https://qavah.me/44787/', 10 ]
   }
   if (network.name === 'celo') {
@@ -59,7 +59,7 @@ async function saveFrontendFiles (contract) {
 
 async function saveSubgraphFiles (contract) {
   const networks = await fs.readFile(`${__dirname}/../subgraph/networks.json`)
-  const name = ['localhost', 'hardhat'].includes(network.name) ? 'mainnet' : `celo-${network.name}`
+  const name = ['localhost', 'hardhat'].includes(network.name) ? 'mainnet' : network.name
   await fs.writeFile(
     `${__dirname}/../subgraph/networks.json`,
     JSON.stringify({
