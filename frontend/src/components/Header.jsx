@@ -25,6 +25,9 @@ function Header () {
         ) : (
           <button className='a' onClick={connect}>Connect wallet</button>
         )}
+        <a className='a' href="https://github.com/Qavah/qavah/blob/main/docs/FAQ.md" target="_blank" rel="noopener noreferrer">
+          FAQ
+        </a>
       </header>
       {notification && (
         <div className='Message'>

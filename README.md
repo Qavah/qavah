@@ -1,6 +1,9 @@
 # Qavah
 
-Decentralized and free of charge crowdfunding platform running on [Celo](https://celo.org)
+Qavah is a decentralized and free-of-charge crowdfunding platform running on [Celo](https://celo.org)
+
+## How does it work?
+[Check out the FAQ](docs/FAQ.md)
 
 ## Running the project locally
 
@@ -45,5 +48,5 @@ npm install
 npm start
 ```
 
-## For further information
-> Drop an email at contact@qavah.me
+## For more information
+Drop us an email at contact@qavah.me
