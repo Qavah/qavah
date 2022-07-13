@@ -49,4 +49,4 @@ npm start
 ```
 
 ## For more information
-Drop us an email at contact@qavah.me
+Drop me a message on [Discord](https://discord.com) at Theo dort#9495

@@ -17,4 +17,4 @@ You can buy CELO using your debit card or bank account on [Valora](https://valor
 The Celo-Dollar (cUSD) is a stablecoin that mirrors the value of the US dollar. You can trade your cUSD against CELO (or the other way around) and even convert it to Mobile Money using [ChiSpend](https://chispend.com/).
 
 ## Where can I reach you?
-If you have any questions, or things are not working as you would expect, just email me at contact@qavah.me.
+If you have any questions, or things are not working as you would expect, just reach me on [Discord](https://discord.com) at Theo dort#9495.
