@@ -15,7 +15,7 @@ import { ipfs, onFileSelected, escapeHtml } from '../utils'
 function ProjectInfo ({ create = false }) {
   const { chainId, projectId } = useParams()
   const navigate = useNavigate()
-  const { connect } = useCelo()
+  const { connect, destroy } = useCelo()
   const { address, contract, balance, cUSD, fetchBalance } = useContract(chainId)
 
   const { data: { project } = {}, refetch, client } = useQuery(PROJECT_INFO, {
@@ -258,35 +258,45 @@ function ProjectInfo ({ create = false }) {
         <div className='admin'>
           {!mode ? (
             <>
-              <button
-                disabled={!+toClaim}
-                className='button claim primary'
-                onClick={async () => {
-                  try {
-                    notificationVar('Please confirm on your wallet…')
-                    await contract.methods.claimProjectFunds(
-                      project.id
-                    ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
-                    notificationVar('Funds successfully claimed!')
-                    const fetchClaimProjectFunds = async () => {
-                      const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })
-                      const cachedClaimedAmount = cached.project.claimedAmount
-                      const { data } = await refetch()
-                      if (cachedClaimedAmount === data.project.claimedAmount) {
-                        await new Promise(resolve => setTimeout(resolve, 2000))
-                        await fetchClaimProjectFunds()
+              {address ? (
+                <button
+                  disabled={!+toClaim}
+                  className='button claim primary'
+                  onClick={async () => {
+                    try {
+                      notificationVar('Please confirm on your wallet…')
+                      await contract.methods.claimProjectFunds(
+                        project.id
+                      ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
+                      notificationVar('Funds successfully claimed!')
+                      const fetchClaimProjectFunds = async () => {
+                        const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })
+                        const cachedClaimedAmount = cached.project.claimedAmount
+                        const { data } = await refetch()
+                        if (cachedClaimedAmount === data.project.claimedAmount) {
+                          await new Promise(resolve => setTimeout(resolve, 2000))
+                          await fetchClaimProjectFunds()
+                        }
+                      }
+                      await fetchClaimProjectFunds()
+                      fetchBalance(cUSD)
+                    } catch (error) {
+                      console.error(error)
+                      notificationVar(error.message)
+                      if (error.message === 'unknown account') {
+                        await destroy()
+                        notificationVar('Sorry, you must reconnect!')
                       }
                     }
-                    await fetchClaimProjectFunds()
-                    fetchBalance(cUSD)
-                  } catch (error) {
-                    console.error(error)
-                    notificationVar(error.message)
-                  }
-                }}
-              >
-                Claim {toClaim} cUSD
-              </button>
+                  }}
+                >
+                  Claim {toClaim} cUSD
+                </button>
+              ) : (
+                <button className='button primary' onClick={connect}>
+                  Connect wallet
+                </button>
+              )}
               <button className='button' onClick={() => setMode('EDIT')}>
                 Edit
               </button>
@@ -298,66 +308,76 @@ function ProjectInfo ({ create = false }) {
                   Cancel
                 </button>
               )}
-              <button
-                disabled={(!project && !img.dataUrl) || !title.trim() || !description.trim() || amount < 10}
-                className='button primary'
-                onClick={async () => {
-                  try {
-                    let url = project?.image
-                    if (img.dataUrl) {
-                      const croppedImage = await getCroppedImg(img.dataUrl, croppedAreaPixels, 0)
-                      const { path } = await ipfs.add(await fetch(croppedImage).then(r => r.blob()))
-                      url = `https://ipfs.infura.io/ipfs/${path}`
-                    }
-                    notificationVar('Please confirm on your wallet…')
-                    if (mode === 'CREATE') {
-                      client.query({ query: ALL_PROJECTS })
-                      await contract.methods.createProject(
-                        escapeHtml(title.trim()),
-                        description.trim(),
-                        ethers.utils.parseUnits(amount, 18),
-                        url,
-                      ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
-                      notificationVar('Campaign successfully created!')
-                      const fetchCreateProject = async () => {
-                        const { data: cached } = await client.query({ query: ALL_PROJECTS })
-                        const cachedMyProjects = cached.projects.filter(p => +p.creator.id === +address).length
-                        const { data } = await client.query({ query: ALL_PROJECTS, fetchPolicy: 'network-only' })
-                        if (cachedMyProjects === data.projects.filter(p => +p.creator.id === +address).length) {
-                          await new Promise(resolve => setTimeout(resolve, 2000))
-                          await fetchCreateProject()
-                        }
+              {address ? (
+                <button
+                  disabled={(!project && !img.dataUrl) || !title.trim() || !description.trim() || amount < 10}
+                  className='button primary'
+                  onClick={async () => {
+                    try {
+                      let url = project?.image
+                      if (img.dataUrl) {
+                        const croppedImage = await getCroppedImg(img.dataUrl, croppedAreaPixels, 0)
+                        const { path } = await ipfs.add(await fetch(croppedImage).then(r => r.blob()))
+                        url = `https://ipfs.infura.io/ipfs/${path}`
                       }
-                      await fetchCreateProject()
-                      navigate(`/${chainId}`)
-                    } else {
-                      await contract.methods.editProject(
-                        project.id,
-                        escapeHtml(title.trim()),
-                        description.trim(),
-                        url,
-                      ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
-                      notificationVar('Project successfully updated!')
-                      const fetchEditProject = async () => {
-                        const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })
-                        const cachedUpdatedAt = cached.project.updatedAt
-                        const { data } = await refetch()
-                        if (cachedUpdatedAt === data.project.updatedAt) {
-                          await new Promise(resolve => setTimeout(resolve, 2000))
-                          await fetchEditProject()
+                      notificationVar('Please confirm on your wallet…')
+                      if (mode === 'CREATE') {
+                        client.query({ query: ALL_PROJECTS })
+                        await contract.methods.createProject(
+                          escapeHtml(title.trim()),
+                          description.trim(),
+                          ethers.utils.parseUnits(amount, 18),
+                          url,
+                        ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
+                        notificationVar('Campaign successfully created!')
+                        const fetchCreateProject = async () => {
+                          const { data: cached } = await client.query({ query: ALL_PROJECTS })
+                          const cachedMyProjects = cached.projects.filter(p => +p.creator.id === +address).length
+                          const { data } = await client.query({ query: ALL_PROJECTS, fetchPolicy: 'network-only' })
+                          if (cachedMyProjects === data.projects.filter(p => +p.creator.id === +address).length) {
+                            await new Promise(resolve => setTimeout(resolve, 2000))
+                            await fetchCreateProject()
+                          }
                         }
+                        await fetchCreateProject()
+                        navigate(`/${chainId}`)
+                      } else {
+                        await contract.methods.editProject(
+                          project.id,
+                          escapeHtml(title.trim()),
+                          description.trim(),
+                          url,
+                        ).send({ from: address, chainId: '0x' + Number(chainId).toString(16) })
+                        notificationVar('Project successfully updated!')
+                        const fetchEditProject = async () => {
+                          const cached = client.readQuery({ query: PROJECT_INFO, variables: { projectId } })
+                          const cachedUpdatedAt = cached.project.updatedAt
+                          const { data } = await refetch()
+                          if (cachedUpdatedAt === data.project.updatedAt) {
+                            await new Promise(resolve => setTimeout(resolve, 2000))
+                            await fetchEditProject()
+                          }
+                        }
+                        await fetchEditProject()
+                        setMode('')
                       }
-                      await fetchEditProject()
-                      setMode('')
+                    } catch (error) {
+                      console.error(error)
+                      notificationVar(error.message)
+                      if (error.message === 'unknown account') {
+                        await destroy()
+                        notificationVar('Sorry, you must reconnect!')
+                      }
                     }
-                  } catch (error) {
-                    console.error(error)
-                    notificationVar(error.message)
-                  }
-                }}
-              >
-                {mode === 'CREATE' ? 'Create campaign' : 'Save'}
-              </button>
+                  }}
+                >
+                  {mode === 'CREATE' ? 'Create campaign' : 'Save'}
+                </button>
+              ) : (
+                <button className='button primary' onClick={connect}>
+                  Connect wallet
+                </button>
+              )}
             </>
           )}
         </div>
@@ -494,6 +514,10 @@ function ProjectInfo ({ create = false }) {
                     } catch (error) {
                       console.error(error)
                       notificationVar(error.message)
+                      if (error.message === 'unknown account') {
+                        await destroy()
+                        notificationVar('Sorry, you must reconnect!')
+                      }
                     }
                   }}
                 >

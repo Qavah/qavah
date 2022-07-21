@@ -18,7 +18,7 @@ function Profile () {
 
   useEffect(() => {
     setTimeout(async () => {
-      if (window.ReactNativeWebView) {
+      // if (window.ReactNativeWebView) {
         for (const receipt of receipts) {
           const blob = await fetch(receipt.project.image).then(r => r.blob())
           const dataImg = await new Promise((resolve, reject) => {
@@ -29,7 +29,7 @@ function Profile () {
           })
           setDataImgs(dataImgs => ({ ...dataImgs, [receipt.project.id]: dataImg }))
         }
-      }
+      // }
     })
   }, [ userAddress, receipts ])
 
@@ -80,7 +80,7 @@ function Profile () {
             const link = '/' + p.description?.split('/').slice(3).join('/')
             return (
               <Link to={link} className={`a Project plain ${+address === +p.creator && 'mine'}`} key={p.id}>
-                {!window.ReactNativeWebView
+                {!dataImgs[p.project.id]
                   ? <object data={p.image} type='image/svg+xml' className='object' aria-label={p.title} />
                   : <img src={p.image.replace(p.project.image, dataImgs[p.project.id])} className='img image' alt={p.title} />}
               </Link>

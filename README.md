@@ -1,6 +1,6 @@
 # Qavah
 
-Qavah is a decentralized and free-of-charge crowdfunding platform running on [Celo](https://celo.org)
+https://qavah.me is a decentralized and free-of-charge crowdfunding platform running on [Celo](https://celo.org)
 
 ## How does it work?
 [Check out the FAQ](docs/FAQ.md)
@@ -38,7 +38,7 @@ cd subgraph
 npm install
 npm run codegen
 npm run build -- --network mainnet
-npm run deploy-local
+npm run deploy-local # do `npm run create-local` first if you didn't
 ```
 
 Finally, start the frontend with:
