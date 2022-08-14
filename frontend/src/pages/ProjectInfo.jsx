@@ -82,7 +82,7 @@ function ProjectInfo ({ create = false }) {
         project.collection.receipts.length ? (
           <svg className='svg' viewBox='0 0 320 180'>
             <defs>
-              <image id='a' href={project.image} width='320' height='180' />
+              <image id='a' href={project.image.replace('ipfs.infura.io', 'qavah.infura-ipfs.io')} width='320' height='180' />
             </defs>
             {[ ...project.collection.receipts[receiptsNb - 1].image.matchAll(/<use.*?\/>/g) ].map((m, i) => {
               const owner = ranges.findIndex((x) => i < x)
@@ -108,13 +108,13 @@ function ProjectInfo ({ create = false }) {
             })}
           </svg>
         ) : (
-          <img src={project.image} alt='' />
+          <img src={project.image.replace('ipfs.infura.io', 'qavah.infura-ipfs.io')} alt='' />
         )
       ) : (
         <aside className='container'>
           <div className='cropper'>
             <Cropper
-              image={img.dataUrl || project?.image}
+              image={img.dataUrl || project?.image.replace('ipfs.infura.io', 'qavah.infura-ipfs.io')}
               aspect={16 / 9}
               crop={crop}
               onCropChange={setCrop}
@@ -318,7 +318,7 @@ function ProjectInfo ({ create = false }) {
                       if (img.dataUrl) {
                         const croppedImage = await getCroppedImg(img.dataUrl, croppedAreaPixels, 0)
                         const { path } = await ipfs.add(await fetch(croppedImage).then(r => r.blob()))
-                        url = `https://ipfs.infura.io/ipfs/${path}`
+                        url = `https://qavah.infura-ipfs.io/ipfs/${path}`
                       }
                       notificationVar('Please confirm on your wallet…')
                       if (mode === 'CREATE') {

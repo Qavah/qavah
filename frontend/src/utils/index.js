@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useCelo } from '@celo/react-celo'
-import { create as ipfsHttpClient } from 'ipfs-http-client'
+import * as ipfsClient from 'ipfs-http-client'
 import { ethers } from 'ethers'
 import DitherJS from 'ditherjs'
 import contractAddresses from '../contracts/contract-address.json'
@@ -29,7 +29,14 @@ export const getNetwork = chainId => ({
   }
 })[chainId]
 
-export const ipfs = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0')
+export const ipfs = ipfsClient.create({
+  host: 'ipfs.infura.io',
+  port: 5001,
+  protocol: 'https',
+  headers: {
+    authorization: 'Basic ' + Buffer.from('2DKuHQyhrxZg8pQ0qFDS2P1zbhA:1c5a77a8f113de65fe662e53288a883e').toString('base64'),
+  },
+})
 
 export const useContract = (chainId) => {
   const { address, kit } = useCelo()

@@ -6,7 +6,7 @@ const Project = ({ project }) => {
   const percentage = BigNumber.from(project.fundedAmount).mul?.(100).div(project.requestedAmount).toNumber()
   return (
     <Link to={`/${chainId}/${project.id}`} className='Project'>
-      <img className='img image' src={project.image} alt='' />
+      <img className='img image' src={project.image.replace('ipfs.infura.io', 'qavah.infura-ipfs.io')} alt='' />
       <div className='content'>
         <div className='title'>
           <h3 className='h3'>{project.title}</h3>

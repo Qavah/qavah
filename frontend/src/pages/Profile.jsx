@@ -20,7 +20,7 @@ function Profile () {
     setTimeout(async () => {
       // if (window.ReactNativeWebView) {
         for (const receipt of receipts) {
-          const blob = await fetch(receipt.project.image).then(r => r.blob())
+          const blob = await fetch(receipt.project.image.replace('ipfs.infura.io', 'qavah.infura-ipfs.io')).then(r => r.blob())
           const dataImg = await new Promise((resolve, reject) => {
             const reader = new FileReader()
             reader.onerror = reject
