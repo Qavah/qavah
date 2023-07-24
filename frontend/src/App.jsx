@@ -15,8 +15,8 @@ function App () {
       dapp={{
         name: 'Qavah',
         description: 'Decentralized and free-of-charge crowdfunding platform',
-        url: 'https://qavah.me',
-        icon: 'https://qavah.me/favicon.png',
+        url: 'https://qavah.github.io/qavah',
+        icon: 'https://qavah.github.io/qavah/favicon.png',
       }}
       network={{
         ...getNetwork(chainId),

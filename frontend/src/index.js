@@ -1,6 +1,6 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import App from './App'
 import Explorer from './pages/Explorer'
 import ProjectInfo from './pages/ProjectInfo'
@@ -10,7 +10,7 @@ const container = document.getElementById('root')
 const root = createRoot(container)
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path='/'>
           <Route index element={<Navigate to='/42220' replace />} />
@@ -22,6 +22,6 @@ root.render(
           </Route>
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   </React.StrictMode>
 )
