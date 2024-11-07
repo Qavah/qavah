@@ -25,7 +25,7 @@ export const getNetwork = chainId => ({
     name: 'Celo',
     rpcUrl: 'https://forno.celo.org',
     explorer: 'https://explorer.celo.org',
-    subgraph: 'https://api.thegraph.com/subgraphs/name/yip-theodore/qavah-celo-mainnet',
+    subgraph: 'https://api.studio.thegraph.com/query/77108/qavah-celo-mainnet/version/latest',
   }
 })[chainId]
 
